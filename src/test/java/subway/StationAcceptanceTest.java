@@ -3,6 +3,7 @@ package subway;
 import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,8 +36,7 @@ public class StationAcceptanceTest {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
 
         // then
-        List<String> stationNames =
-                RestAssured.given().log().all()
+        List<String> stationNames = requestSpecificationWithLog()
                         .when().get("/stations")
                         .then().log().all()
                         .extract().jsonPath().getList("name", String.class);
@@ -56,7 +56,7 @@ public class StationAcceptanceTest {
         createStation("부산역");
 
         // when
-        List<String> stationNames = RestAssured.given().log().all()
+        List<String> stationNames = requestSpecificationWithLog()
                 .when().get("/stations")
                 .then().log().all()
                 .extract().jsonPath().getList("name", String.class);
@@ -77,13 +77,13 @@ public class StationAcceptanceTest {
         long stationId = createStation("사당역").jsonPath().getLong("id");
 
         // when
-        RestAssured.given().log().all()
+        requestSpecificationWithLog()
                 .when().delete("/stations/" + stationId)
                 .then()
                 .extract();
 
         // then
-        List<String> stationNames = RestAssured.given().log().all()
+        List<String> stationNames = requestSpecificationWithLog()
                 .when().get("/stations")
                 .then().log().all()
                 .extract().jsonPath().getList("name", String.class);
@@ -95,11 +95,15 @@ public class StationAcceptanceTest {
         Map<String, String> params = new HashMap<>();
         params.put("name", stationName);
 
-        return RestAssured.given().log().all()
+        return requestSpecificationWithLog()
                 .body(params)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .when().post("/stations")
                 .then().log().all()
                 .extract();
+    }
+
+    private RequestSpecification requestSpecificationWithLog() {
+        return RestAssured.given().log().all();
     }
 }
