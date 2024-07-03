@@ -3,6 +3,7 @@ package subway;
 import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,12 +35,7 @@ public class LineAcceptanceTest {
         params.put("distance", 10);
 
         // when
-        ExtractableResponse<Response> response = RestAssured.given().log().all()
-                .body(params)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().post("/lines")
-                .then().log().all()
-                .extract();
+        ExtractableResponse<Response> response = getCreateLineExtract(params);
 
         // then
         String name = response.jsonPath().getString("name");
@@ -66,11 +62,7 @@ public class LineAcceptanceTest {
         params1.put("downStationId", 2);
         params1.put("distance", 10);
 
-        RestAssured.given().log().all()
-                .body(params1)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().post("/lines")
-                .then().log().all();
+        getCreateLineExtract(params1);
 
         Map<String, Object> params2 = new HashMap<>();
         params2.put("name", "분당선");
@@ -79,14 +71,10 @@ public class LineAcceptanceTest {
         params2.put("downStationId", 3);
         params2.put("distance", 7);
 
-        RestAssured.given().log().all()
-                .body(params2)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().post("/lines")
-                .then().log().all();
+        getCreateLineExtract(params2);
 
         // when
-        List<Map<String, Object>> response = RestAssured.given().log().all()
+        List<Map<String, Object>> response = requestSpecificationWithLog()
                 .when().get("/lines")
                 .then().log().all()
                 .extract().jsonPath().getList("$");
@@ -120,15 +108,10 @@ public class LineAcceptanceTest {
         params1.put("downStationId", 2);
         params1.put("distance", 10);
 
-        long lineId = RestAssured.given().log().all()
-                .body(params1)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().post("/lines")
-                .then().log().all()
-                .extract().jsonPath().getLong("id");
+        long lineId = getCreateLineExtract(params1).jsonPath().getLong("id");
 
         // when
-        ExtractableResponse<Response> response = RestAssured.given().log().all()
+        ExtractableResponse<Response> response = requestSpecificationWithLog()
                 .when().get("/lines/" + lineId)
                 .then().log().all()
                 .extract();
@@ -159,26 +142,21 @@ public class LineAcceptanceTest {
         params1.put("downStationId", 2);
         params1.put("distance", 10);
 
-        long lineId = RestAssured.given().log().all()
-                .body(params1)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().post("/lines")
-                .then().log().all()
-                .extract().jsonPath().getLong("id");
+        long lineId = getCreateLineExtract(params1).jsonPath().getLong("id");
 
         // when
         Map<String, Object> putParams = new HashMap<>();
         putParams.put("name", "다른분당선");
         putParams.put("color", "bg-red-700");
 
-        ExtractableResponse<Response> putResponse = RestAssured.given().log().all()
+        ExtractableResponse<Response> putResponse = requestSpecificationWithLog()
                 .body(putParams)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .when().put("/lines/" + lineId)
                 .then().log().all()
                 .extract();
 
-        ExtractableResponse<Response> viewResponse = RestAssured.given().log().all()
+        ExtractableResponse<Response> viewResponse = requestSpecificationWithLog()
                 .when().get("/lines/" + lineId)
                 .then().log().all()
                 .extract();
@@ -201,24 +179,32 @@ public class LineAcceptanceTest {
         params1.put("downStationId", 2);
         params1.put("distance", 10);
 
-        long lineId = RestAssured.given().log().all()
-                .body(params1)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().post("/lines")
-                .then().log().all()
-                .extract().jsonPath().getLong("id");
+        long lineId = getCreateLineExtract(params1).jsonPath().getLong("id");
         // when
-        ExtractableResponse<Response> deleteResponse = RestAssured.given().log().all()
+        ExtractableResponse<Response> deleteResponse = requestSpecificationWithLog()
                 .when().delete("/lines/" + lineId)
                 .then().log().all()
                 .extract();
 
-        ExtractableResponse<Response> viewResponse = RestAssured.given().log().all()
+        ExtractableResponse<Response> viewResponse = requestSpecificationWithLog()
                 .when().get("/lines/" + lineId)
                 .then().log().all()
                 .extract();
         // then
         assertThat(deleteResponse.statusCode()).isEqualTo(204);
         assertThat(viewResponse.statusCode()).isEqualTo(404);
+    }
+
+    private ExtractableResponse<Response> getCreateLineExtract(Map<String, Object> params) {
+        return requestSpecificationWithLog()
+                .body(params)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .when().post("/lines")
+                .then().log().all()
+                .extract();
+    }
+
+    private RequestSpecification requestSpecificationWithLog() {
+        return RestAssured.given().log().all();
     }
 }
