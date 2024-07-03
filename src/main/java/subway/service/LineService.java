@@ -76,4 +76,9 @@ public class LineService {
             line.setDistance(lineRequest.getDistance());
         }
     }
+
+    @Transactional
+    public void removeLine(Long id) {
+        lineRepository.deleteById(id);
+    }
 }

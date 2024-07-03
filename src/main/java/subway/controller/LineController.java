@@ -34,8 +34,14 @@ public class LineController {
     }
 
     @PatchMapping("/lines/{id}")
-    public ResponseEntity<LineResponse> Line(@PathVariable Long id, @RequestBody LineRequest lineRequest) {
+    public ResponseEntity<Void> modifyLine(@PathVariable Long id, @RequestBody LineRequest lineRequest) {
         lineService.updateLine(id, lineRequest);
         return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/lines/{id}")
+    public ResponseEntity<Void> deleteLine(@PathVariable Long id) {
+        lineService.removeLine(id);
+        return ResponseEntity.noContent().build();
     }
 }
