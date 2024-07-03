@@ -9,7 +9,6 @@ import subway.entity.Station;
 import subway.repository.LineRepository;
 import subway.repository.StationRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,10 +34,17 @@ public class LineService {
         return LineResponse.from(line);
     }
 
-    public List<LineResponse> getAllLines() {
+    public List<LineResponse> findAllLines() {
         List<Line> allLines = lineRepository.findAll();
         return allLines.stream()
                 .map(line -> LineResponse.from(line))
                 .collect(Collectors.toList());
     }
+
+    public LineResponse findLine(Long id) {
+        return LineResponse.from(lineRepository.findById(id)
+                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다.")));
+    }
+
+
 }
