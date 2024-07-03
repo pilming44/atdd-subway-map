@@ -19,11 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("지하철 노선 관련 기능")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Sql("/sql/test-data.sql")
 public class LineAcceptanceTest {
 
     @Test
     @DisplayName("지하철 노선을 생성한다")
-    @Sql("/sql/test-data.sql")
     void createLine() {
         // given
         Map<String, Object> params = new HashMap<>();
@@ -57,7 +57,6 @@ public class LineAcceptanceTest {
 
     @Test
     @DisplayName("지하철 노선 목록을 조회한다.")
-    @Sql("/sql/test-data.sql")
     void viewLineList() {
         // given
         Map<String, Object> params1 = new HashMap<>();
