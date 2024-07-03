@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
+import subway.entity.Station;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +26,7 @@ public class LineAcceptanceTest {
     @DisplayName("지하철 노선을 생성한다")
     @Sql("/sql/test-data.sql")
     void createLine() {
-        // given 새로운 지하철 노선 정보를 입력
+        // given
         Map<String, Object> params = new HashMap<>();
         params.put("name", "신분당선");
         params.put("color", "bg-red-600");
@@ -33,7 +34,7 @@ public class LineAcceptanceTest {
         params.put("downStationId", 2);
         params.put("distance", 10);
 
-        // when 관리자가 노선을 생성
+        // when
         ExtractableResponse<Response> response = RestAssured.given().log().all()
                 .body(params)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -41,7 +42,7 @@ public class LineAcceptanceTest {
                 .then().log().all()
                 .extract();
 
-        // then 해당 노선이 생성되고 노선 목록에 포함
+        // then
         String name = response.jsonPath().getString("name");
         String color = response.jsonPath().getString("color");
         List<Map<String, Object>> stations = response.jsonPath().getList("stations");
@@ -55,4 +56,64 @@ public class LineAcceptanceTest {
         assertThat(stations.get(1).get("name")).isEqualTo("판교역");
     }
 
+    @Test
+    @DisplayName("지하철 노선 목록을 조회한다.")
+    @Sql("/sql/test-data.sql")
+    void viewLineList() {
+        // given
+        Map<String, Object> params1 = new HashMap<>();
+        params1.put("name", "신분당선");
+        params1.put("color", "bg-red-600");
+        params1.put("upStationId", 1);
+        params1.put("downStationId", 2);
+        params1.put("distance", 10);
+
+        RestAssured.given().log().all()
+                .body(params1)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .when().post("/lines")
+                .then().log().all()
+                .extract();
+
+        Map<String, Object> params2 = new HashMap<>();
+        params2.put("name", "분당선");
+        params2.put("color", "bg-green-600");
+        params2.put("upStationId", 1);
+        params2.put("downStationId", 3);
+        params2.put("distance", 7);
+
+        RestAssured.given().log().all()
+                .body(params2)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .when().post("/lines")
+                .then().log().all()
+                .extract();
+
+        // when
+        List<Map<String, Object>> response = RestAssured.given().log().all()
+                .when().get("/lines")
+                .then().log().all()
+                .extract().jsonPath().getList("$");
+
+        // then
+        assertThat(response).hasSize(2);
+
+        assertThat(response.get(0).get("name")).isEqualTo("신분당선");
+        assertThat(response.get(0).get("color")).isEqualTo("bg-red-600");
+        List<Map<String, Object>> stations1 = (List<Map<String, Object>>) response.get(0).get("stations");
+        assertThat(stations1.size()).isEqualTo(2);
+        assertThat(stations1.get(0).get("id")).isEqualTo(1);
+        assertThat(stations1.get(0).get("name")).isEqualTo("강남역");
+        assertThat(stations1.get(1).get("id")).isEqualTo(2);
+        assertThat(stations1.get(1).get("name")).isEqualTo("판교역");
+
+        assertThat(response.get(1).get("name")).isEqualTo("분당선");
+        assertThat(response.get(1).get("color")).isEqualTo("bg-green-600");
+        List<Map<String, Object>> stations2 = (List<Map<String, Object>>) response.get(1).get("stations");
+        assertThat(stations2.size()).isEqualTo(2);
+        assertThat(stations2.get(0).get("id")).isEqualTo(1);
+        assertThat(stations2.get(0).get("name")).isEqualTo("강남역");
+        assertThat(stations2.get(1).get("id")).isEqualTo(3);
+        assertThat(stations2.get(1).get("name")).isEqualTo("광교역");
+    }
 }
