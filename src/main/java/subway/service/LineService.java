@@ -25,10 +25,16 @@ public class LineService {
 
     @Transactional
     public LineResponse saveLine(LineRequest lineRequest) {
-        Station upStation = stationRepository.findById(lineRequest.getUpStationId())
-                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
-        Station downStation = stationRepository.findById(lineRequest.getDownStationId())
-                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
+        Station upStation = null;
+        Station downStation = null;
+        if (lineRequest.getUpStationId() != null) {
+            upStation = stationRepository.findById(lineRequest.getUpStationId())
+                    .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
+        }
+        if (lineRequest.getDownStationId() != null) {
+            downStation = stationRepository.findById(lineRequest.getDownStationId())
+                    .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
+        }
 
         Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor(), upStation, downStation));
         return LineResponse.from(line);
