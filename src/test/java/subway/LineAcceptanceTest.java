@@ -190,4 +190,36 @@ public class LineAcceptanceTest {
         assertThat(viewResponse.jsonPath().getString("name")).isEqualTo("다른분당선");
         assertThat(viewResponse.jsonPath().getString("color")).isEqualTo("bg-red-700");
     }
+
+    @Test
+    @DisplayName("지하철 노선을 삭제한다.")
+    void DeleteLine() {
+        // given
+        Map<String, Object> params1 = new HashMap<>();
+        params1.put("name", "신분당선");
+        params1.put("color", "bg-red-600");
+        params1.put("upStationId", 1);
+        params1.put("downStationId", 2);
+        params1.put("distance", 10);
+
+        long lineId = RestAssured.given().log().all()
+                .body(params1)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .when().post("/lines")
+                .then().log().all()
+                .extract().jsonPath().getLong("id");
+        // when
+        ExtractableResponse<Response> deleteResponse = RestAssured.given().log().all()
+                .when().delete("/lines/" + lineId)
+                .then().log().all()
+                .extract();
+
+        ExtractableResponse<Response> viewResponse = RestAssured.given().log().all()
+                .when().get("/lines/" + lineId)
+                .then().log().all()
+                .extract();
+        // then
+        assertThat(deleteResponse.statusCode()).isEqualTo(204);
+        assertThat(viewResponse.statusCode()).isEqualTo(404);
+    }
 }
