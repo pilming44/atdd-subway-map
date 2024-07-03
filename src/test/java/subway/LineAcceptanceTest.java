@@ -147,4 +147,47 @@ public class LineAcceptanceTest {
         assertThat(stations.get(0).get("id")).isEqualTo(1);
         assertThat(stations.get(1).get("id")).isEqualTo(2);
     }
+
+
+    @Test
+    @DisplayName("지하철 노선을 수정한다.")
+    void updateLine() {
+        // given
+        Map<String, Object> params1 = new HashMap<>();
+        params1.put("name", "신분당선");
+        params1.put("color", "bg-red-600");
+        params1.put("upStationId", 1);
+        params1.put("downStationId", 2);
+        params1.put("distance", 10);
+
+        long lineId = RestAssured.given().log().all()
+                .body(params1)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .when().post("/lines")
+                .then().log().all()
+                .extract().jsonPath().getLong("id");
+
+        // when
+        Map<String, Object> putParams = new HashMap<>();
+        putParams.put("name", "다른분당선");
+        putParams.put("color", "bg-red-700");
+
+        ExtractableResponse<Response> putResponse = RestAssured.given().log().all()
+                .body(putParams)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .when().put("/lines/" + lineId)
+                .then().log().all()
+                .extract();
+
+        ExtractableResponse<Response> viewResponse = RestAssured.given().log().all()
+                .when().get("/lines/" + lineId)
+                .then().log().all()
+                .extract();
+
+        // then
+        assertThat(putResponse.statusCode()).isEqualTo(204);
+
+        assertThat(viewResponse.jsonPath().getString("name")).isEqualTo("다른분당선");
+        assertThat(viewResponse.jsonPath().getString("color")).isEqualTo("bg-red-700");
+    }
 }
