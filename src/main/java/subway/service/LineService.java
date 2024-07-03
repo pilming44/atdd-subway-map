@@ -9,6 +9,10 @@ import subway.entity.Station;
 import subway.repository.LineRepository;
 import subway.repository.StationRepository;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @Transactional(readOnly = true)
 public class LineService {
@@ -23,11 +27,18 @@ public class LineService {
     @Transactional
     public LineResponse saveLine(LineRequest lineRequest) {
         Station upStation = stationRepository.findById(lineRequest.getUpStationId())
-                .orElseThrow(()->new IllegalArgumentException("존재하지않는 역입니다."));
+                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
         Station downStation = stationRepository.findById(lineRequest.getDownStationId())
-                .orElseThrow(()->new IllegalArgumentException("존재하지않는 역입니다."));;
+                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));;
 
         Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor(), upStation, downStation));
         return LineResponse.from(line);
+    }
+
+    public List<LineResponse> getAllLines() {
+        List<Line> allLines = lineRepository.findAll();
+        return allLines.stream()
+                .map(line -> LineResponse.from(line))
+                .collect(Collectors.toList());
     }
 }
