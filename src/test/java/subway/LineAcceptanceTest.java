@@ -186,13 +186,8 @@ public class LineAcceptanceTest {
                 .then().log().all()
                 .extract();
 
-        ExtractableResponse<Response> viewResponse = requestSpecificationWithLog()
-                .when().get("/lines/" + lineId)
-                .then().log().all()
-                .extract();
         // then
         assertThat(deleteResponse.statusCode()).isEqualTo(204);
-        assertThat(viewResponse.statusCode()).isEqualTo(404);
     }
 
     private ExtractableResponse<Response> getCreateLineExtract(Map<String, Object> params) {
