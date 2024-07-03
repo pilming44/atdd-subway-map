@@ -152,7 +152,7 @@ public class LineAcceptanceTest {
         ExtractableResponse<Response> putResponse = requestSpecificationWithLog()
                 .body(putParams)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().put("/lines/" + lineId)
+                .when().patch("/lines/" + lineId)
                 .then().log().all()
                 .extract();
 
@@ -162,7 +162,7 @@ public class LineAcceptanceTest {
                 .extract();
 
         // then
-        assertThat(putResponse.statusCode()).isEqualTo(204);
+        assertThat(putResponse.statusCode()).isEqualTo(200);
 
         assertThat(viewResponse.jsonPath().getString("name")).isEqualTo("다른분당선");
         assertThat(viewResponse.jsonPath().getString("color")).isEqualTo("bg-red-700");

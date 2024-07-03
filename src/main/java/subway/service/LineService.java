@@ -28,7 +28,7 @@ public class LineService {
         Station upStation = stationRepository.findById(lineRequest.getUpStationId())
                 .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
         Station downStation = stationRepository.findById(lineRequest.getDownStationId())
-                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));;
+                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
 
         Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor(), upStation, downStation));
         return LineResponse.from(line);
@@ -46,5 +46,28 @@ public class LineService {
                 .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다.")));
     }
 
-
+    @Transactional
+    public void updateLine(Long id, LineRequest lineRequest) {
+        Line line = lineRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 역입니다."));
+        if (lineRequest.getName() != null) {
+            line.setName(lineRequest.getName());
+        }
+        if (lineRequest.getColor() != null) {
+            line.setColor(lineRequest.getColor());
+        }
+        if(lineRequest.getUpStationId() != null) {
+            Station upStation = stationRepository.findById(lineRequest.getUpStationId())
+                    .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
+            line.setUpStation(upStation);
+        }
+        if(lineRequest.getUpStationId() != null) {
+            Station downStation = stationRepository.findById(lineRequest.getDownStationId())
+                    .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
+            line.setDownStation(downStation);
+        }
+        if (lineRequest.getDistance() != null) {
+            line.setDistance(lineRequest.getDistance());
+        }
+    }
 }
