@@ -4,12 +4,14 @@ import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.jdbc.Sql;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,9 +21,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("지하철 노선 관련 기능")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@Sql("/sql/test-data.sql")
 public class LineAcceptanceTest {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    @Transactional
+    void setUp() {
+        LineAndStationSetup lineAndStationSetup = new LineAndStationSetup(jdbcTemplate);
+        lineAndStationSetup.setUpDatabase();
+    }
 
     @Test
     @DisplayName("지하철 노선을 생성한다")
@@ -201,5 +211,31 @@ public class LineAcceptanceTest {
 
     private RequestSpecification requestSpecificationWithLog() {
         return RestAssured.given().log().all();
+    }
+
+    private class LineAndStationSetup extends DatabaseSetupTemplate {
+
+        public LineAndStationSetup(JdbcTemplate jdbcTemplate) {
+            super(jdbcTemplate);
+        }
+
+        @Override
+        protected void truncateTables() {
+            jdbcTemplate.execute("TRUNCATE TABLE line");
+            jdbcTemplate.execute("TRUNCATE TABLE station");
+        }
+
+        @Override
+        protected void resetAutoIncrement() {
+            jdbcTemplate.execute("ALTER TABLE station ALTER COLUMN id RESTART WITH 1");
+            jdbcTemplate.execute("ALTER TABLE line ALTER COLUMN id RESTART WITH 1");
+        }
+
+        @Override
+        protected void insertInitialData() {
+            jdbcTemplate.update("INSERT INTO station (name) VALUES ('강남역')");
+            jdbcTemplate.update("INSERT INTO station (name) VALUES ('판교역')");
+            jdbcTemplate.update("INSERT INTO station (name) VALUES ('광교역')");
+        }
     }
 }
