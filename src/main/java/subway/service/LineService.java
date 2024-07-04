@@ -6,6 +6,8 @@ import subway.dto.LineRequest;
 import subway.dto.LineResponse;
 import subway.entity.Line;
 import subway.entity.Station;
+import subway.exception.NoSuchLineException;
+import subway.exception.NoSuchStationException;
 import subway.repository.LineRepository;
 import subway.repository.StationRepository;
 
@@ -29,11 +31,11 @@ public class LineService {
         Station downStation = null;
         if (lineRequest.getUpStationId() != null) {
             upStation = stationRepository.findById(lineRequest.getUpStationId())
-                    .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
+                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
         }
         if (lineRequest.getDownStationId() != null) {
             downStation = stationRepository.findById(lineRequest.getDownStationId())
-                    .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
+                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
         }
 
         Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor(), upStation, downStation));
@@ -49,13 +51,13 @@ public class LineService {
 
     public LineResponse findLine(Long id) {
         return LineResponse.from(lineRepository.findById(id)
-                .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다.")));
+                .orElseThrow(()->new NoSuchLineException("존재하지 않는 노선입니다.")));
     }
 
     @Transactional
     public void updateLine(Long id, LineRequest lineRequest) {
         Line line = lineRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 역입니다."));
+                .orElseThrow(() -> new NoSuchLineException("존재하지 않는 노선입니다."));
         if (lineRequest.getName() != null) {
             line.setName(lineRequest.getName());
         }
@@ -64,12 +66,12 @@ public class LineService {
         }
         if(lineRequest.getUpStationId() != null) {
             Station upStation = stationRepository.findById(lineRequest.getUpStationId())
-                    .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
+                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
             line.setUpStation(upStation);
         }
         if(lineRequest.getUpStationId() != null) {
             Station downStation = stationRepository.findById(lineRequest.getDownStationId())
-                    .orElseThrow(()->new IllegalArgumentException("존재하지 않는 역입니다."));
+                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
             line.setDownStation(downStation);
         }
         if (lineRequest.getDistance() != null) {
