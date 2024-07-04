@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
@@ -150,6 +151,7 @@ public class LineAcceptanceTest {
 
         // then
         assertThat(deleteResponse.statusCode()).isEqualTo(204);
+        assertThat(getLineExtract(lineId).statusCode()).isEqualTo(404);
     }
 
     private Map<String, Object> getLineRequestParamMap(
@@ -186,6 +188,7 @@ public class LineAcceptanceTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .when().post("/lines")
                 .then().log().all()
+                .statusCode(HttpStatus.CREATED.value())
                 .extract();
     }
 
