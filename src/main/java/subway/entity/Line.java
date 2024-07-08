@@ -16,26 +16,15 @@ public class Line {
 
     private String color;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Station upStation;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Station downStation;
-
-    private Long distance;
-
     @OneToMany(mappedBy = "line", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Section> sections = new ArrayList<>();
 
     protected Line() {
     }
 
-    public Line(String name, String color, Station upStation, Station downStation, Long distance) {
+    public Line(String name, String color) {
         this.name = name;
         this.color = color;
-        this.upStation = upStation;
-        this.downStation = downStation;
-        this.distance = distance;
     }
     public List<Station> getStations() {
         List<Station> stations = new ArrayList<>();
@@ -85,30 +74,11 @@ public class Line {
         return color;
     }
 
-    public Station getUpStation() {
-        return upStation;
-    }
-
-    public Station getDownStation() {
-        return downStation;
-    }
-
-    public Long getDistance() {
-        return distance;
-    }
-
     public void setName(String name) {
         this.name = name;
     }
 
     public void setColor(String color) {
         this.color = color;
-    }
-
-    public void setUpStation(Station upStation) {
-        this.upStation = upStation;
-    }
-    public void setDownStation(Station downStation) {
-        this.downStation = downStation;
     }
 }

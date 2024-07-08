@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import subway.dto.LineRequest;
 import subway.dto.LineResponse;
+import subway.dto.SectionRequest;
 import subway.entity.Line;
 import subway.entity.Section;
 import subway.entity.Station;
@@ -43,7 +44,7 @@ public class LineService {
                     .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
         }
         Section section = sectionRepository.save(new Section(null, upStation, downStation, lineRequest.getDistance()));
-        Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor(), upStation, downStation, lineRequest.getDistance()));
+        Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor()));
         line.addSection(section);
         section.setLine(line);
 
@@ -71,28 +72,6 @@ public class LineService {
         }
         if (lineRequest.getColor() != null) {
             line.setColor(lineRequest.getColor());
-        }
-        if(line.getSectionCount() == 0
-                && (lineRequest.getUpStationId() != null && lineRequest.getDownStationId() != null)) {
-            Station upStation = stationRepository.findById(lineRequest.getUpStationId())
-                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
-
-            Station downStation = stationRepository.findById(lineRequest.getDownStationId())
-                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
-
-            Section section = sectionRepository.save(new Section(line, upStation, downStation, lineRequest.getDistance()));
-            line.addSection(section);
-        }
-
-        if(lineRequest.getUpStationId() != null) {
-            Station newUpStation = stationRepository.findById(lineRequest.getUpStationId())
-                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
-            line.setUpStation(newUpStation);
-        }
-        if(lineRequest.getUpStationId() != null) {
-            Station newDownStation = stationRepository.findById(lineRequest.getDownStationId())
-                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
-            line.setDownStation(newDownStation);
         }
     }
 
