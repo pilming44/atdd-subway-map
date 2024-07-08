@@ -33,6 +33,7 @@ public class LineService {
     public LineResponse saveLine(LineRequest lineRequest) {
         Station upStation = null;
         Station downStation = null;
+
         if (lineRequest.getUpStationId() != null) {
             upStation = stationRepository.findById(lineRequest.getUpStationId())
                     .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
@@ -42,7 +43,8 @@ public class LineService {
                     .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
         }
         Section section = sectionRepository.save(new Section(null, upStation, downStation, lineRequest.getDistance()));
-        Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor(), section));
+        Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor(), upStation, downStation, lineRequest.getDistance()));
+        line.addSection(section);
         section.setLine(line);
 
         return LineResponse.from(line);
@@ -70,7 +72,6 @@ public class LineService {
         if (lineRequest.getColor() != null) {
             line.setColor(lineRequest.getColor());
         }
-
         if(line.getSectionCount() == 0
                 && (lineRequest.getUpStationId() != null && lineRequest.getDownStationId() != null)) {
             Station upStation = stationRepository.findById(lineRequest.getUpStationId())
@@ -86,14 +87,12 @@ public class LineService {
         if(lineRequest.getUpStationId() != null) {
             Station newUpStation = stationRepository.findById(lineRequest.getUpStationId())
                     .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
-            Section upEndSection = line.getUpEndSection();
-            upEndSection.setUpStation(newUpStation);
+            line.setUpStation(newUpStation);
         }
         if(lineRequest.getUpStationId() != null) {
             Station newDownStation = stationRepository.findById(lineRequest.getDownStationId())
                     .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
-            Section downEndSection = line.getDownEndSection();
-            downEndSection.setDownStation(newDownStation);
+            line.setDownStation(newDownStation);
         }
     }
 

@@ -50,7 +50,7 @@ public class SectionAcceptanceTest {
 
 
         // when
-        ExtractableResponse<Response> response = getCreateNewLineExtract(newSection, lineId);
+        ExtractableResponse<Response> response = getCreateNewLineSectionExtract(newSection, lineId);
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         List<Map<String, Object>> stations = getLineExtract(lineId).jsonPath().getList("stations");
@@ -76,7 +76,7 @@ public class SectionAcceptanceTest {
         Map<String, Object> newSection = getSectionRequestParamMap(3L, 4L, 10L);
 
         // when
-        ExtractableResponse<Response> response = getCreateNewLineExtract(newSection, lineId);
+        ExtractableResponse<Response> response = getCreateNewLineSectionExtract(newSection, lineId);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -102,7 +102,7 @@ public class SectionAcceptanceTest {
         Map<String, Object> newSection = getSectionRequestParamMap(2L, 1L, 10L);
 
         // when
-        ExtractableResponse<Response> response = getCreateNewLineExtract(newSection, lineId);
+        ExtractableResponse<Response> response = getCreateNewLineSectionExtract(newSection, lineId);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -127,7 +127,7 @@ public class SectionAcceptanceTest {
 
         Map<String, Object> newSection = getSectionRequestParamMap(2L, 3L, 10L);
 
-        getCreateNewLineExtract(newSection, lineId);
+        getCreateNewLineSectionExtract(newSection, lineId);
 
         // when
         ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 3L);
@@ -155,7 +155,7 @@ public class SectionAcceptanceTest {
 
         Map<String, Object> newSection = getSectionRequestParamMap(2L, 3L, 10L);
 
-        getCreateNewLineExtract(newSection, lineId);
+        getCreateNewLineSectionExtract(newSection, lineId);
 
         // when
         ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 4L);
@@ -184,7 +184,7 @@ public class SectionAcceptanceTest {
 
         Map<String, Object> newSection = getSectionRequestParamMap(2L, 3L, 10L);
 
-        getCreateNewLineExtract(newSection, lineId);
+        getCreateNewLineSectionExtract(newSection, lineId);
 
         // when
         ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 2L);
@@ -264,7 +264,7 @@ public class SectionAcceptanceTest {
                 .extract();
     }
 
-    private ExtractableResponse<Response> getCreateNewLineExtract(Map<String, Object> newSection, long lineId) {
+    private ExtractableResponse<Response> getCreateNewLineSectionExtract(Map<String, Object> newSection, long lineId) {
         return RestAssured.given().log().all()
                 .body(newSection)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
