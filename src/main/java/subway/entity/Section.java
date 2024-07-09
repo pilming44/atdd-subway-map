@@ -33,39 +33,24 @@ public class Section {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public Line getLine() {
         return line;
-    }
-
-    public void setLine(Line line) {
-        this.line = line;
     }
 
     public Station getUpStation() {
         return upStation;
     }
 
-    public void setUpStation(Station upStation) {
-        this.upStation = upStation;
-    }
-
     public Station getDownStation() {
         return downStation;
-    }
-
-    public void setDownStation(Station downStation) {
-        this.downStation = downStation;
     }
 
     public Long getDistance() {
         return distance;
     }
 
-    public void setDistance(Long distance) {
-        this.distance = distance;
+    public void setLine(Line line) {
+        this.line = line;
     }
+
 }

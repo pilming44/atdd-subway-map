@@ -4,7 +4,6 @@ import subway.exception.IllegalSectionException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +27,14 @@ public class Line {
         this.name = name;
         this.color = color;
     }
+
+    public Line(String name, String color, Section section) {
+        this.name = name;
+        this.color = color;
+        this.sections.add(section);
+        section.setLine(this);
+    }
+
     public List<Station> getStations() {
         List<Station> stations = new ArrayList<>();
 
@@ -61,13 +68,13 @@ public class Line {
 
     public Section removedSection(Station downStation) {
 
-        validateEmpty();
+        validateDeleteEmpty();
 
-        validateOnlyOne();
+        validateDeleteOnlyOne();
 
-        validateCorrectSection(downStation);
+        validateDeletableSection(downStation);
 
-        Section removedSection = getLastSection();
+        Section removedSection = sections.get(sections.size() - 1);
 
         sections.remove(sections.size() - 1);
 
@@ -100,23 +107,23 @@ public class Line {
                 .findFirst();
     }
 
-    private Section getLastSection() {
-        return sections.get(sections.size() - 1);
-    }
+    private void validateDeletableSection(Station downStation) {
+        if (sections.isEmpty()) {
+            return;
+        }
 
-    private void validateCorrectSection(Station downStation) {
-        if (getLastSection().getDownStation().getId() != downStation.getId()) {
+        if (sections.get(sections.size() - 1).getDownStation().getId() != downStation.getId()) {
             throw new IllegalSectionException("노선의 마지막 구간이 아닙니다.");
         }
     }
 
-    private void validateOnlyOne() {
+    private void validateDeleteOnlyOne() {
         if (sections.size() == 1) {
             throw new IllegalSectionException("노선에 구간이 하나뿐이면 삭제할수없습니다.");
         }
     }
 
-    private void validateEmpty() {
+    private void validateDeleteEmpty() {
         if (sections.isEmpty()) {
             throw new IllegalSectionException("노선에 삭제 할 구간이 없습니다.");
         }
@@ -132,8 +139,10 @@ public class Line {
     }
 
     private void validateStationLink(Section section) {
-        if (!sections.isEmpty()
-                && (getLastSection().getDownStation().getId() != section.getUpStation().getId())) {
+        if (sections.isEmpty()) {
+            return;
+        }
+        if (sections.get(sections.size() - 1).getDownStation().getId() != section.getUpStation().getId()) {
             throw new IllegalSectionException("구간의 상행역이 노선 마지막 하행종점역이 아닙니다.");
         }
     }
