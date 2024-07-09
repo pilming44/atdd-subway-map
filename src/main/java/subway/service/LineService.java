@@ -98,4 +98,16 @@ public class LineService {
 
         return LineResponse.from(line);
     }
+
+    @Transactional
+    public void removeSection(Long id, Long stationId) {
+        Line line = lineRepository.findById(id)
+                .orElseThrow(() -> new NoSuchLineException("존재하지 않는 노선입니다."));
+        Station downStation = stationRepository.findById(stationId)
+                .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
+
+        Section removedSection = line.removedSection(downStation);
+
+        sectionRepository.delete(removedSection);
+    }
 }

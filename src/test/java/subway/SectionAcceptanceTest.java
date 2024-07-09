@@ -171,7 +171,7 @@ public class SectionAcceptanceTest {
 
     /**
      * Given 노선이 등록돼있고
-     * When 관리자가 노선의 마지막 구간(하행종점역)이 아닌 다른 구간을 삭제하면
+     * When 관리자가 노선의 마지막 구간(하행종점역)이 아닌 중간 구간을 삭제하면
      * Then 에러가 발생하고 해당 구간은 삭제되지않는다.
      */
     @Test

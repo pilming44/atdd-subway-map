@@ -50,20 +50,6 @@ public class Line {
         return stations;
     }
 
-    private Optional<Section> findNextSection(Section tempSection) {
-        return sections.stream()
-                .filter(section -> section.getUpStation().equals(tempSection.getDownStation()))
-                .findFirst();
-    }
-
-    public int getSectionCount() {
-        return sections.size();
-    }
-
-    private Section getLastSection() {
-        return sections.get(sections.size() - 1);
-    }
-
     public void addSection(Section section) {
 
         validateStationLink(section);
@@ -73,20 +59,19 @@ public class Line {
         sections.add(section);
     }
 
-    private void validateStationDuplication(Section section) {
-        for (Section s : sections) {
-            if (s.getUpStation().getId() == section.getDownStation().getId()
-                    || s.getDownStation().getId() == section.getDownStation().getId()) {
-                throw new IllegalSectionException("구간의 하행역이 이미 노선에 등록되어있는 역입니다.");
-            }
-        }
-    }
+    public Section removedSection(Station downStation) {
 
-    private void validateStationLink(Section section) {
-        if (getSectionCount() != 0
-                && (getLastSection().getDownStation().getId() != section.getUpStation().getId())) {
-            throw new IllegalSectionException("구간의 상행역이 노선 마지막 하행종점역이 아닙니다.");
-        }
+        validateEmpty();
+
+        validateOnlyOne();
+
+        validateCorrectSection(downStation);
+
+        Section removedSection = getLastSection();
+
+        sections.remove(sections.size() - 1);
+
+        return removedSection;
     }
 
     public Long getId() {
@@ -107,5 +92,49 @@ public class Line {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    private Optional<Section> findNextSection(Section tempSection) {
+        return sections.stream()
+                .filter(section -> section.getUpStation().equals(tempSection.getDownStation()))
+                .findFirst();
+    }
+
+    private Section getLastSection() {
+        return sections.get(sections.size() - 1);
+    }
+
+    private void validateCorrectSection(Station downStation) {
+        if (getLastSection().getDownStation().getId() != downStation.getId()) {
+            throw new IllegalSectionException("노선의 마지막 구간이 아닙니다.");
+        }
+    }
+
+    private void validateOnlyOne() {
+        if (sections.size() == 1) {
+            throw new IllegalSectionException("노선에 구간이 하나뿐이면 삭제할수없습니다.");
+        }
+    }
+
+    private void validateEmpty() {
+        if (sections.isEmpty()) {
+            throw new IllegalSectionException("노선에 삭제 할 구간이 없습니다.");
+        }
+    }
+
+    private void validateStationDuplication(Section section) {
+        for (Section s : sections) {
+            if (s.getUpStation().getId() == section.getDownStation().getId()
+                    || s.getDownStation().getId() == section.getDownStation().getId()) {
+                throw new IllegalSectionException("구간의 하행역이 이미 노선에 등록되어있는 역입니다.");
+            }
+        }
+    }
+
+    private void validateStationLink(Section section) {
+        if (!sections.isEmpty()
+                && (getLastSection().getDownStation().getId() != section.getUpStation().getId())) {
+            throw new IllegalSectionException("구간의 상행역이 노선 마지막 하행종점역이 아닙니다.");
+        }
     }
 }
