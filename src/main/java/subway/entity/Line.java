@@ -1,5 +1,7 @@
 package subway.entity;
 
+import subway.exception.IllegalSectionException;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,8 +60,33 @@ public class Line {
         return sections.size();
     }
 
+    private Section getLastSection() {
+        return sections.get(sections.size() - 1);
+    }
+
     public void addSection(Section section) {
+
+        validateStationLink(section);
+
+        validateStationDuplication(section);
+
         sections.add(section);
+    }
+
+    private void validateStationDuplication(Section section) {
+        for (Section s : sections) {
+            if (s.getUpStation().getId() == section.getDownStation().getId()
+                    || s.getDownStation().getId() == section.getDownStation().getId()) {
+                throw new IllegalSectionException("구간의 하행역이 이미 노선에 등록되어있는 역입니다.");
+            }
+        }
+    }
+
+    private void validateStationLink(Section section) {
+        if (getSectionCount() != 0
+                && (getLastSection().getDownStation().getId() != section.getUpStation().getId())) {
+            throw new IllegalSectionException("구간의 상행역이 노선 마지막 하행종점역이 아닙니다.");
+        }
     }
 
     public Long getId() {

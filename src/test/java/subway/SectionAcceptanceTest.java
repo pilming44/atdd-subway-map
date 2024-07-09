@@ -291,12 +291,14 @@ public class SectionAcceptanceTest {
         protected void truncateTables() {
             jdbcTemplate.execute("TRUNCATE TABLE line");
             jdbcTemplate.execute("TRUNCATE TABLE station");
+            jdbcTemplate.execute("TRUNCATE TABLE section");
         }
 
         @Override
         protected void resetAutoIncrement() {
             jdbcTemplate.execute("ALTER TABLE station ALTER COLUMN id RESTART WITH 1");
             jdbcTemplate.execute("ALTER TABLE line ALTER COLUMN id RESTART WITH 1");
+            jdbcTemplate.execute("ALTER TABLE section ALTER COLUMN id RESTART WITH 1");
         }
 
         @Override
@@ -304,6 +306,7 @@ public class SectionAcceptanceTest {
             jdbcTemplate.update("INSERT INTO station (name) VALUES ('신사역')");
             jdbcTemplate.update("INSERT INTO station (name) VALUES ('강남역')");
             jdbcTemplate.update("INSERT INTO station (name) VALUES ('판교역')");
+            jdbcTemplate.update("INSERT INTO station (name) VALUES ('광교역')");
         }
     }
 }

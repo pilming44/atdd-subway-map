@@ -79,4 +79,23 @@ public class LineService {
     public void removeLine(Long id) {
         lineRepository.deleteById(id);
     }
+
+    @Transactional
+    public LineResponse addSection(Long id, SectionRequest sectionRequest) {
+        Line line = lineRepository.findById(id)
+                .orElseThrow(() -> new NoSuchLineException("존재하지 않는 노선입니다."));
+        Station upStation = stationRepository.findById(sectionRequest.getUpStationId())
+                .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
+
+        Station downStation = stationRepository.findById(sectionRequest.getDownStationId())
+                .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
+
+        Section section = new Section(line, upStation, downStation, sectionRequest.getDistance());
+
+        line.addSection(section);
+
+        sectionRepository.save(section);
+
+        return LineResponse.from(line);
+    }
 }
