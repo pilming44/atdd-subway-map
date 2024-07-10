@@ -26,11 +26,21 @@ public class SectionAcceptanceTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    private Long station1Id;
+    private Long station2Id;
+    private Long station3Id;
+    private Long station4Id;
+
     @BeforeEach
     @Transactional
     void setUp() {
         SectionTestSetup sectionTestSetup = new SectionTestSetup(jdbcTemplate);
         sectionTestSetup.setUpDatabase();
+
+        station1Id = createStation("신사역").jsonPath().getLong("id");
+        station2Id = createStation("강남역").jsonPath().getLong("id");
+        station3Id = createStation("판교역").jsonPath().getLong("id");
+        station4Id = createStation("광교역").jsonPath().getLong("id");
     }
 
     /**
@@ -42,11 +52,11 @@ public class SectionAcceptanceTest {
     @DisplayName("노선에 새로운 구간 추가")
     void 구간등록_case1() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(2L, 3L, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(station2Id, station3Id, 10L);
 
 
         // when
@@ -69,11 +79,11 @@ public class SectionAcceptanceTest {
     @DisplayName("노선의 하행 종점역과 다른 상행역을 가진 구간 추가시 예외 발생")
     void 구간등록_case2() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(3L, 4L, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(station3Id, station4Id, 10L);
 
         // when
         ExtractableResponse<Response> response = getCreateNewLineSectionExtract(newSection, lineId);
@@ -95,11 +105,11 @@ public class SectionAcceptanceTest {
     @DisplayName("노선에 이미 등록된 역을 하행역으로 가진 구간 추가시 예외 발생")
     void 구간등록_case3() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(2L, 1L, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(station2Id, station1Id, 10L);
 
         // when
         ExtractableResponse<Response> response = getCreateNewLineSectionExtract(newSection, lineId);
@@ -121,16 +131,16 @@ public class SectionAcceptanceTest {
     @DisplayName("노선의 마지막 구간 삭제")
     void 구간삭제_case1() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(2L, 3L, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(station2Id, station3Id, 10L);
 
         getCreateNewLineSectionExtract(newSection, lineId);
 
         // when
-        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 3L);
+        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, station3Id);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
@@ -149,16 +159,16 @@ public class SectionAcceptanceTest {
     @DisplayName("노선의 구간이 아닌 다른 구간 삭제 시 예외 발생")
     void 구간삭제_case2() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(2L, 3L, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(station2Id, station3Id, 10L);
 
         getCreateNewLineSectionExtract(newSection, lineId);
 
         // when
-        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 4L);
+        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, station4Id);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -178,16 +188,16 @@ public class SectionAcceptanceTest {
     @DisplayName("노선의 마지막 구간(하행종점역)이 아닌 다른 구간 삭제 시 예외 발생")
     void 구간삭제_case3() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(2L, 3L, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(station2Id, station3Id, 10L);
 
         getCreateNewLineSectionExtract(newSection, lineId);
 
         // when
-        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 2L);
+        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, station2Id);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -207,12 +217,12 @@ public class SectionAcceptanceTest {
     @DisplayName("노선에 구간이 하나뿐일때 구간 삭제 시 예외 발생")
     void 구간삭제_case4() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
         // when
-        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 2L);
+        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, station2Id);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -281,6 +291,18 @@ public class SectionAcceptanceTest {
                 .extract();
     }
 
+    private ExtractableResponse<Response> createStation(String stationName) {
+        Map<String, String> params = new HashMap<>();
+        params.put("name", stationName);
+
+        return RestAssured.given().log().all()
+                .body(params)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .when().post("/stations")
+                .then().log().all()
+                .extract();
+    }
+
     private class SectionTestSetup extends DatabaseSetupTemplate {
 
         public SectionTestSetup(JdbcTemplate jdbcTemplate) {
@@ -303,10 +325,6 @@ public class SectionAcceptanceTest {
 
         @Override
         protected void insertInitialData() {
-            jdbcTemplate.update("INSERT INTO station (name) VALUES ('신사역')");
-            jdbcTemplate.update("INSERT INTO station (name) VALUES ('강남역')");
-            jdbcTemplate.update("INSERT INTO station (name) VALUES ('판교역')");
-            jdbcTemplate.update("INSERT INTO station (name) VALUES ('광교역')");
         }
     }
 }
