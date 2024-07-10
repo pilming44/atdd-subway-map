@@ -42,8 +42,9 @@ public class LineService {
         if (lineRequest.getDownStationId() != null) {
             downStation = getStation(lineRequest.getDownStationId());
         }
-        Section section = sectionRepository.save(new Section(null, upStation, downStation, lineRequest.getDistance()));
-        Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor(), section));
+        Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor()));
+
+        sectionRepository.save(new Section(line, upStation, downStation, lineRequest.getDistance()));
 
         return LineResponse.from(line);
     }
@@ -79,8 +80,6 @@ public class LineService {
         Station downStation = getStation(sectionRequest.getDownStationId());
 
         Section section = new Section(line, upStation, downStation, sectionRequest.getDistance());
-
-        line.addSection(section);
 
         sectionRepository.save(section);
 
