@@ -4,14 +4,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import subway.dto.LineRequest;
 import subway.dto.LineResponse;
+import subway.dto.SectionRequest;
 import subway.entity.Line;
+import subway.entity.Section;
 import subway.entity.Station;
 import subway.exception.NoSuchLineException;
 import subway.exception.NoSuchStationException;
 import subway.repository.LineRepository;
+import subway.repository.SectionRepository;
 import subway.repository.StationRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,26 +23,29 @@ import java.util.stream.Collectors;
 public class LineService {
     private final LineRepository lineRepository;
     private final StationRepository stationRepository;
+    private final SectionRepository sectionRepository;
 
-    public LineService(LineRepository lineRepository, StationRepository stationRepository) {
+    public LineService(LineRepository lineRepository, StationRepository stationRepository, SectionRepository sectionRepository) {
         this.lineRepository = lineRepository;
         this.stationRepository = stationRepository;
+        this.sectionRepository = sectionRepository;
     }
 
     @Transactional
     public LineResponse saveLine(LineRequest lineRequest) {
         Station upStation = null;
         Station downStation = null;
+
         if (lineRequest.getUpStationId() != null) {
-            upStation = stationRepository.findById(lineRequest.getUpStationId())
-                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
+            upStation = getStation(lineRequest.getUpStationId());
         }
         if (lineRequest.getDownStationId() != null) {
-            downStation = stationRepository.findById(lineRequest.getDownStationId())
-                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
+            downStation = getStation(lineRequest.getDownStationId());
         }
+        Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor()));
 
-        Line line = lineRepository.save(new Line(lineRequest.getName(), lineRequest.getColor(), upStation, downStation));
+        sectionRepository.save(new Section(line, upStation, downStation, lineRequest.getDistance()));
+
         return LineResponse.from(line);
     }
 
@@ -50,37 +57,52 @@ public class LineService {
     }
 
     public LineResponse findLine(Long id) {
-        return LineResponse.from(lineRepository.findById(id)
-                .orElseThrow(()->new NoSuchLineException("존재하지 않는 노선입니다.")));
+        return LineResponse.from(getLine(id));
     }
 
     @Transactional
     public void updateLine(Long id, LineRequest lineRequest) {
-        Line line = lineRepository.findById(id)
-                .orElseThrow(() -> new NoSuchLineException("존재하지 않는 노선입니다."));
-        if (lineRequest.getName() != null) {
-            line.setName(lineRequest.getName());
-        }
-        if (lineRequest.getColor() != null) {
-            line.setColor(lineRequest.getColor());
-        }
-        if(lineRequest.getUpStationId() != null) {
-            Station upStation = stationRepository.findById(lineRequest.getUpStationId())
-                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
-            line.setUpStation(upStation);
-        }
-        if(lineRequest.getUpStationId() != null) {
-            Station downStation = stationRepository.findById(lineRequest.getDownStationId())
-                    .orElseThrow(()->new NoSuchStationException("존재하지 않는 역입니다."));
-            line.setDownStation(downStation);
-        }
-        if (lineRequest.getDistance() != null) {
-            line.setDistance(lineRequest.getDistance());
-        }
+        Line line = getLine(id);
+        Optional.ofNullable(lineRequest.getName()).ifPresent(line::setName);
+        Optional.ofNullable(lineRequest.getColor()).ifPresent(line::setColor);
     }
 
     @Transactional
     public void removeLine(Long id) {
         lineRepository.deleteById(id);
+    }
+
+    @Transactional
+    public LineResponse addSection(Long id, SectionRequest sectionRequest) {
+        Line line = getLine(id);
+        Station upStation = getStation(sectionRequest.getUpStationId());
+
+        Station downStation = getStation(sectionRequest.getDownStationId());
+
+        Section section = new Section(line, upStation, downStation, sectionRequest.getDistance());
+
+        sectionRepository.save(section);
+
+        return LineResponse.from(line);
+    }
+
+    @Transactional
+    public void removeSection(Long id, Long stationId) {
+        Line line = getLine(id);
+        Station downStation = getStation(stationId);
+
+        Section removedSection = line.removedSection(downStation);
+
+        sectionRepository.delete(removedSection);
+    }
+
+    private Line getLine(Long id) {
+        return lineRepository.findById(id)
+                .orElseThrow(() -> new NoSuchLineException("존재하지 않는 노선입니다."));
+    }
+
+    private Station getStation(Long stationId) {
+        return stationRepository.findById(stationId)
+                .orElseThrow(() -> new NoSuchStationException("존재하지 않는 역입니다."));
     }
 }

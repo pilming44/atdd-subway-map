@@ -1,7 +1,8 @@
 package subway.repository;
 
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import subway.entity.Line;
 
 import java.util.List;
@@ -9,11 +10,19 @@ import java.util.Optional;
 
 public interface LineRepository extends JpaRepository<Line, Long> {
     @Override
-    @EntityGraph(attributePaths = {"upStation", "downStation"})
+    @Query("SELECT DISTINCT l FROM Line l " +
+            "LEFT JOIN FETCH l.sections s " +
+            "LEFT JOIN FETCH s.sectionList ss " +
+            "LEFT JOIN FETCH ss.upStation " +
+            "LEFT JOIN FETCH ss.downStation")
     List<Line> findAll();
 
     @Override
-    @EntityGraph(attributePaths = {"upStation", "downStation"})
-    Optional<Line> findById(Long id);
-
+    @Query("SELECT DISTINCT l FROM Line l " +
+            "LEFT JOIN FETCH l.sections s " +
+            "LEFT JOIN FETCH s.sectionList ss " +
+            "LEFT JOIN FETCH ss.upStation " +
+            "LEFT JOIN FETCH ss.downStation " +
+            "WHERE l.id = :id")
+    Optional<Line> findById(@Param("id") Long id);
 }

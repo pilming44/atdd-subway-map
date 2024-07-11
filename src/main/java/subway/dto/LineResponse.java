@@ -28,12 +28,11 @@ public class LineResponse {
         return stations;
     }
 
-    private LineResponse(Long id, String name, String color, Station upstation, Station downstation) {
+    private LineResponse(Long id, String name, String color, List<Station> stations) {
         this.id = id;
         this.name = name;
         this.color = color;
-        stations.add(upstation);
-        stations.add(downstation);
+        this.stations = stations;
     }
 
     public static LineResponse from(Line line) {
@@ -41,8 +40,7 @@ public class LineResponse {
                 line.getId(),
                 line.getName(),
                 line.getColor(),
-                line.getUpStation(),
-                line.getDownStation()
+                line.getStations()
         );
         return lineResponse;
     }

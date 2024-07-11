@@ -1,6 +1,7 @@
 package subway;
 
 import io.restassured.RestAssured;
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,6 +105,7 @@ public class LineAcceptanceTest {
         Long responseLineId = response.jsonPath().getLong("id");
         String responseLineName = response.jsonPath().getString("name");
         String responseLineColor = response.jsonPath().getString("color");
+        JsonPath jsonPath = response.jsonPath();
         List<Map<String, Object>> stations = response.jsonPath().getList("stations");
 
         assertThat(responseLineId).isEqualTo(lineId);

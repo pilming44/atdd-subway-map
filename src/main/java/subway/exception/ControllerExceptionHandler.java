@@ -11,4 +11,9 @@ public class ControllerExceptionHandler {
     public ResponseEntity<Void> handleNotFoundException() {
         return ResponseEntity.notFound().build();
     }
+
+    @ExceptionHandler(IllegalSectionException.class)
+    public ResponseEntity<Void> handleIllegalSectionException() {
+        return ResponseEntity.badRequest().build();
+    }
 }
