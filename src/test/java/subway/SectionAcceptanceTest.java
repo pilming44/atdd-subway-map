@@ -26,10 +26,10 @@ public class SectionAcceptanceTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private Long station1Id;
-    private Long station2Id;
-    private Long station3Id;
-    private Long station4Id;
+    private Long 신사역Id;
+    private Long 강남역Id;
+    private Long 판교역Id;
+    private Long 광교역Id;
 
     @BeforeEach
     @Transactional
@@ -37,10 +37,10 @@ public class SectionAcceptanceTest {
         SectionTestSetup sectionTestSetup = new SectionTestSetup(jdbcTemplate);
         sectionTestSetup.setUpDatabase();
 
-        station1Id = createStation("신사역").jsonPath().getLong("id");
-        station2Id = createStation("강남역").jsonPath().getLong("id");
-        station3Id = createStation("판교역").jsonPath().getLong("id");
-        station4Id = createStation("광교역").jsonPath().getLong("id");
+        신사역Id = createStation("신사역").jsonPath().getLong("id");
+        강남역Id = createStation("강남역").jsonPath().getLong("id");
+        판교역Id = createStation("판교역").jsonPath().getLong("id");
+        광교역Id = createStation("광교역").jsonPath().getLong("id");
     }
 
     /**
@@ -52,11 +52,11 @@ public class SectionAcceptanceTest {
     @DisplayName("노선에 새로운 구간 추가")
     void 구간등록_case1() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(station2Id, station3Id, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(강남역Id, 판교역Id, 10L);
 
 
         // when
@@ -65,9 +65,9 @@ public class SectionAcceptanceTest {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         List<Map<String, Object>> stations = getLineExtract(lineId).jsonPath().getList("stations");
         assertThat(stations.size()).isEqualTo(3);
-        assertThat(stations.get(0).get("id")).isEqualTo(1);
-        assertThat(stations.get(1).get("id")).isEqualTo(2);
-        assertThat(stations.get(2).get("id")).isEqualTo(3);
+        assertThat(Long.parseLong(stations.get(0).get("id").toString())).isEqualTo(신사역Id);
+        assertThat(Long.parseLong(stations.get(1).get("id").toString())).isEqualTo(강남역Id);
+        assertThat(Long.parseLong(stations.get(2).get("id").toString())).isEqualTo(판교역Id);
     }
 
     /**
@@ -79,11 +79,11 @@ public class SectionAcceptanceTest {
     @DisplayName("노선의 하행 종점역과 다른 상행역을 가진 구간 추가시 예외 발생")
     void 구간등록_case2() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(station3Id, station4Id, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(판교역Id, 광교역Id, 10L);
 
         // when
         ExtractableResponse<Response> response = getCreateNewLineSectionExtract(newSection, lineId);
@@ -105,11 +105,11 @@ public class SectionAcceptanceTest {
     @DisplayName("노선에 이미 등록된 역을 하행역으로 가진 구간 추가시 예외 발생")
     void 구간등록_case3() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(station2Id, station1Id, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(강남역Id, 신사역Id, 10L);
 
         // when
         ExtractableResponse<Response> response = getCreateNewLineSectionExtract(newSection, lineId);
@@ -131,16 +131,16 @@ public class SectionAcceptanceTest {
     @DisplayName("노선의 마지막 구간 삭제")
     void 구간삭제_case1() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(station2Id, station3Id, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(강남역Id, 판교역Id, 10L);
 
         getCreateNewLineSectionExtract(newSection, lineId);
 
         // when
-        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, station3Id);
+        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 판교역Id);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
@@ -159,16 +159,16 @@ public class SectionAcceptanceTest {
     @DisplayName("노선의 구간이 아닌 다른 구간 삭제 시 예외 발생")
     void 구간삭제_case2() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(station2Id, station3Id, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(강남역Id, 판교역Id, 10L);
 
         getCreateNewLineSectionExtract(newSection, lineId);
 
         // when
-        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, station4Id);
+        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 광교역Id);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -188,16 +188,16 @@ public class SectionAcceptanceTest {
     @DisplayName("노선의 마지막 구간(하행종점역)이 아닌 다른 구간 삭제 시 예외 발생")
     void 구간삭제_case3() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
-        Map<String, Object> newSection = getSectionRequestParamMap(station2Id, station3Id, 10L);
+        Map<String, Object> newSection = getSectionRequestParamMap(강남역Id, 판교역Id, 10L);
 
         getCreateNewLineSectionExtract(newSection, lineId);
 
         // when
-        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, station2Id);
+        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 강남역Id);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
@@ -217,12 +217,12 @@ public class SectionAcceptanceTest {
     @DisplayName("노선에 구간이 하나뿐일때 구간 삭제 시 예외 발생")
     void 구간삭제_case4() {
         // given
-        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", station1Id, station2Id, 10L);
+        Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
         ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
         // when
-        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, station2Id);
+        ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 강남역Id);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
