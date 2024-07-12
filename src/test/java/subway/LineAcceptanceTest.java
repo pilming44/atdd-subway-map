@@ -9,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static subway.TestUtil.노선_생성_Extract;
+import static subway.TestUtil.노선_조회_Extract;
 
 @DisplayName("지하철 노선 관련 기능")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -41,7 +42,7 @@ public class LineAcceptanceTest {
         Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
 
         // when
-        ExtractableResponse<Response> response = getLineCreationExtract(params);
+        ExtractableResponse<Response> response = 노선_생성_Extract(params);
 
         // then
         String name = response.jsonPath().getString("name");
@@ -63,11 +64,11 @@ public class LineAcceptanceTest {
         // given
         Map<String, Object> params1 = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
 
-        getLineCreationExtract(params1);
+        노선_생성_Extract(params1);
 
         Map<String, Object> params2 = getLineRequestParamMap("분당선", "bg-green-600", 1L, 3L, 7L);
 
-        getLineCreationExtract(params2);
+        노선_생성_Extract(params2);
 
         // when
         List<Map<String, Object>> response = getLineListExtract().jsonPath().getList("$");
@@ -96,10 +97,10 @@ public class LineAcceptanceTest {
         // given
         Map<String, Object> params1 = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
 
-        long lineId = getLineCreationExtract(params1).jsonPath().getLong("id");
+        long lineId = 노선_생성_Extract(params1).jsonPath().getLong("id");
 
         // when
-        ExtractableResponse<Response> response = getLineExtract(lineId);
+        ExtractableResponse<Response> response = 노선_조회_Extract(lineId);
 
         // then
         Long responseLineId = response.jsonPath().getLong("id");
@@ -123,7 +124,7 @@ public class LineAcceptanceTest {
         // given
         Map<String, Object> params1 = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
 
-        long lineId = getLineCreationExtract(params1).jsonPath().getLong("id");
+        long lineId = 노선_생성_Extract(params1).jsonPath().getLong("id");
 
         // when
         Map<String, Object> putParams = new HashMap<>();
@@ -132,7 +133,7 @@ public class LineAcceptanceTest {
 
         ExtractableResponse<Response> patchResponse = patchLineExtract(putParams, lineId);
 
-        ExtractableResponse<Response> viewResponse = getLineExtract(lineId);
+        ExtractableResponse<Response> viewResponse = 노선_조회_Extract(lineId);
 
         // then
         assertThat(patchResponse.statusCode()).isEqualTo(200);
@@ -147,13 +148,13 @@ public class LineAcceptanceTest {
         // given
         Map<String, Object> params1 = getLineRequestParamMap("신분당선", "bg-red-600", 1L, 2L, 10L);
 
-        long lineId = getLineCreationExtract(params1).jsonPath().getLong("id");
+        long lineId = 노선_생성_Extract(params1).jsonPath().getLong("id");
         // when
         ExtractableResponse<Response> deleteResponse = deleteLineExtract(lineId);
 
         // then
         assertThat(deleteResponse.statusCode()).isEqualTo(204);
-        assertThat(getLineExtract(lineId).statusCode()).isEqualTo(404);
+        assertThat(노선_조회_Extract(lineId).statusCode()).isEqualTo(404);
     }
 
     private Map<String, Object> getLineRequestParamMap(
@@ -174,23 +175,6 @@ public class LineAcceptanceTest {
         return RestAssured.given().log().all()
                 .when().get("/lines")
                 .then().log().all()
-                .extract();
-    }
-
-    private ExtractableResponse<Response> getLineExtract(long lineId) {
-        return RestAssured.given().log().all()
-                .when().get("/lines/" + lineId)
-                .then().log().all()
-                .extract();
-    }
-
-    private ExtractableResponse<Response> getLineCreationExtract(Map<String, Object> params) {
-        return RestAssured.given().log().all()
-                .body(params)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().post("/lines")
-                .then().log().all()
-                .statusCode(HttpStatus.CREATED.value())
                 .extract();
     }
 

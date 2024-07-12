@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static subway.TestUtil.*;
 
 @DisplayName("지하철 구간 관련 기능")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -37,10 +37,10 @@ public class SectionAcceptanceTest {
         SectionTestSetup sectionTestSetup = new SectionTestSetup(jdbcTemplate);
         sectionTestSetup.setUpDatabase();
 
-        신사역Id = createStation("신사역").jsonPath().getLong("id");
-        강남역Id = createStation("강남역").jsonPath().getLong("id");
-        판교역Id = createStation("판교역").jsonPath().getLong("id");
-        광교역Id = createStation("광교역").jsonPath().getLong("id");
+        신사역Id = 역_생성("신사역").jsonPath().getLong("id");
+        강남역Id = 역_생성("강남역").jsonPath().getLong("id");
+        판교역Id = 역_생성("판교역").jsonPath().getLong("id");
+        광교역Id = 역_생성("광교역").jsonPath().getLong("id");
     }
 
     /**
@@ -53,17 +53,17 @@ public class SectionAcceptanceTest {
     void 구간등록_case1() {
         // given
         Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
-        ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
+        ExtractableResponse<Response> lineCreationResponse = 노선_생성_Extract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
         Map<String, Object> newSection = getSectionRequestParamMap(강남역Id, 판교역Id, 10L);
 
 
         // when
-        ExtractableResponse<Response> response = getCreateNewLineSectionExtract(newSection, lineId);
+        ExtractableResponse<Response> response = 노선에_새로운_구간_추가_Extract(newSection, lineId);
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
-        List<Map<String, Object>> stations = getLineExtract(lineId).jsonPath().getList("stations");
+        List<Map<String, Object>> stations = 노선_조회_Extract(lineId).jsonPath().getList("stations");
         assertThat(stations.size()).isEqualTo(3);
         assertThat(Long.parseLong(stations.get(0).get("id").toString())).isEqualTo(신사역Id);
         assertThat(Long.parseLong(stations.get(1).get("id").toString())).isEqualTo(강남역Id);
@@ -80,17 +80,17 @@ public class SectionAcceptanceTest {
     void 구간등록_case2() {
         // given
         Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
-        ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
+        ExtractableResponse<Response> lineCreationResponse = 노선_생성_Extract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
         Map<String, Object> newSection = getSectionRequestParamMap(판교역Id, 광교역Id, 10L);
 
         // when
-        ExtractableResponse<Response> response = getCreateNewLineSectionExtract(newSection, lineId);
+        ExtractableResponse<Response> response = 노선에_새로운_구간_추가_Extract(newSection, lineId);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        List<Map<String, Object>> stations = getLineExtract(lineId).jsonPath().getList("stations");
+        List<Map<String, Object>> stations = 노선_조회_Extract(lineId).jsonPath().getList("stations");
         assertThat(stations.size()).isEqualTo(2);
         assertThat(stations.get(0).get("id")).isEqualTo(1);
         assertThat(stations.get(1).get("id")).isEqualTo(2);
@@ -106,17 +106,17 @@ public class SectionAcceptanceTest {
     void 구간등록_case3() {
         // given
         Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
-        ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
+        ExtractableResponse<Response> lineCreationResponse = 노선_생성_Extract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
         Map<String, Object> newSection = getSectionRequestParamMap(강남역Id, 신사역Id, 10L);
 
         // when
-        ExtractableResponse<Response> response = getCreateNewLineSectionExtract(newSection, lineId);
+        ExtractableResponse<Response> response = 노선에_새로운_구간_추가_Extract(newSection, lineId);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        List<Map<String, Object>> stations = getLineExtract(lineId).jsonPath().getList("stations");
+        List<Map<String, Object>> stations = 노선_조회_Extract(lineId).jsonPath().getList("stations");
         assertThat(stations.size()).isEqualTo(2);
         assertThat(stations.get(0).get("id")).isEqualTo(1);
         assertThat(stations.get(1).get("id")).isEqualTo(2);
@@ -132,19 +132,19 @@ public class SectionAcceptanceTest {
     void 구간삭제_case1() {
         // given
         Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
-        ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
+        ExtractableResponse<Response> lineCreationResponse = 노선_생성_Extract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
         Map<String, Object> newSection = getSectionRequestParamMap(강남역Id, 판교역Id, 10L);
 
-        getCreateNewLineSectionExtract(newSection, lineId);
+        노선에_새로운_구간_추가_Extract(newSection, lineId);
 
         // when
         ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 판교역Id);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.NO_CONTENT.value());
-        List<Map<String, Object>> stations = getLineExtract(lineId).jsonPath().getList("stations");
+        List<Map<String, Object>> stations = 노선_조회_Extract(lineId).jsonPath().getList("stations");
         assertThat(stations.size()).isEqualTo(2);
         assertThat(stations.get(0).get("id")).isEqualTo(1);
         assertThat(stations.get(1).get("id")).isEqualTo(2);
@@ -160,19 +160,19 @@ public class SectionAcceptanceTest {
     void 구간삭제_case2() {
         // given
         Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
-        ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
+        ExtractableResponse<Response> lineCreationResponse = 노선_생성_Extract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
         Map<String, Object> newSection = getSectionRequestParamMap(강남역Id, 판교역Id, 10L);
 
-        getCreateNewLineSectionExtract(newSection, lineId);
+        노선에_새로운_구간_추가_Extract(newSection, lineId);
 
         // when
         ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 광교역Id);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        List<Map<String, Object>> stations = getLineExtract(lineId).jsonPath().getList("stations");
+        List<Map<String, Object>> stations = 노선_조회_Extract(lineId).jsonPath().getList("stations");
         assertThat(stations.size()).isEqualTo(3);
         assertThat(stations.get(0).get("id")).isEqualTo(1);
         assertThat(stations.get(1).get("id")).isEqualTo(2);
@@ -189,19 +189,19 @@ public class SectionAcceptanceTest {
     void 구간삭제_case3() {
         // given
         Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
-        ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
+        ExtractableResponse<Response> lineCreationResponse = 노선_생성_Extract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
         Map<String, Object> newSection = getSectionRequestParamMap(강남역Id, 판교역Id, 10L);
 
-        getCreateNewLineSectionExtract(newSection, lineId);
+        노선에_새로운_구간_추가_Extract(newSection, lineId);
 
         // when
         ExtractableResponse<Response> response = getSectionDeletionExtract(lineId, 강남역Id);
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        List<Map<String, Object>> stations = getLineExtract(lineId).jsonPath().getList("stations");
+        List<Map<String, Object>> stations = 노선_조회_Extract(lineId).jsonPath().getList("stations");
         assertThat(stations.size()).isEqualTo(3);
         assertThat(stations.get(0).get("id")).isEqualTo(1);
         assertThat(stations.get(1).get("id")).isEqualTo(2);
@@ -218,7 +218,7 @@ public class SectionAcceptanceTest {
     void 구간삭제_case4() {
         // given
         Map<String, Object> params = getLineRequestParamMap("신분당선", "bg-red-600", 신사역Id, 강남역Id, 10L);
-        ExtractableResponse<Response> lineCreationResponse = getLineCreationExtract(params);
+        ExtractableResponse<Response> lineCreationResponse = 노선_생성_Extract(params);
         long lineId = lineCreationResponse.jsonPath().getLong("id");
 
         // when
@@ -226,7 +226,7 @@ public class SectionAcceptanceTest {
 
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        List<Map<String, Object>> stations = getLineExtract(lineId).jsonPath().getList("stations");
+        List<Map<String, Object>> stations = 노선_조회_Extract(lineId).jsonPath().getList("stations");
         assertThat(stations.size()).isEqualTo(2);
         assertThat(stations.get(0).get("id")).isEqualTo(1);
         assertThat(stations.get(1).get("id")).isEqualTo(2);
@@ -257,48 +257,10 @@ public class SectionAcceptanceTest {
         return params;
     }
 
-    private ExtractableResponse<Response> getLineCreationExtract(Map<String, Object> params) {
-        return RestAssured.given().log().all()
-                .body(params)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().post("/lines")
-                .then().log().all()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract();
-    }
-
-    private ExtractableResponse<Response> getLineExtract(long lineId) {
-        return RestAssured.given().log().all()
-                .when().get("/lines/" + lineId)
-                .then().log().all()
-                .extract();
-    }
-
-    private ExtractableResponse<Response> getCreateNewLineSectionExtract(Map<String, Object> newSection, long lineId) {
-        return RestAssured.given().log().all()
-                .body(newSection)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().post("/lines/" + lineId + "/sections")
-                .then().log().all()
-                .extract();
-    }
-
     private ExtractableResponse<Response> getSectionDeletionExtract(long lineId, long stationId) {
         return RestAssured.given().log().all()
                 .queryParam("stationId", stationId)
                 .when().delete("/lines/" + lineId + "/sections")
-                .then().log().all()
-                .extract();
-    }
-
-    private ExtractableResponse<Response> createStation(String stationName) {
-        Map<String, String> params = new HashMap<>();
-        params.put("name", stationName);
-
-        return RestAssured.given().log().all()
-                .body(params)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .when().post("/stations")
                 .then().log().all()
                 .extract();
     }
